@@ -1,0 +1,71 @@
+
+var USERAGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
+
+function GetQuandlV3Dataset(group, report, api_key /* tail extras */) {
+  CSBlueLog.Module("GetQuandlV3");
+  var R2 = new CSFluentREST();
+  R2.UserAgent(USERAGENT)
+  .Verb("GET")
+  .Url("https://www.quandl.com")
+  .Path("api")
+  .Path("v3")
+  .Path("datasets")
+  .Path(group)
+  .Path(report)
+  .Tail('api_key=' + api_key);
+  var args = [].slice.call(arguments);
+  for (var i = 3; i < args.length; i++) {
+    R2.Tail(args[i]);
+  }
+  R2.Send();
+  CSBlueLog.Information(R2.URL);
+  var resp;
+  if (R2.IsOK()) {
+    resp = R2.Response();
+    CSBlueLog.Information(resp);
+    result = [true, resp];
+  } else {
+    result = [false, ""];
+  }
+  CSBlueLog.Module();
+  return result;
+}
+
+function GetQuandlV1Dataset(group, report) {
+  CSBlueLog.Module("GetQuandlV3");
+  var R2 = new CSFluentREST();
+  R2.UserAgent(USERAGENT)
+  .Verb("GET")
+  .Url("http://www.quandl.com")
+  .Path("api")
+  .Path("v1")
+  .Path("datasets")
+  .Path(group)
+  .Path(report)
+  .Send();
+  CSBlueLog.Information(R2.URL);
+  var resp;
+  if (R2.IsOK()) {
+    resp = R2.Response();
+    CSBlueLog.Information(resp);
+    result = [true, resp];
+  } else {
+    result = [false, ""];
+  }
+  CSBlueLog.Module();
+  return result;
+}
+
+if (true) {
+  debugger;
+
+  var result = GetQuandlV1Dataset("COM", "AU_EIB.csv");
+  if (result[0]) {
+    CSFile.WriteAllText(".\\AU_EIB.csv", result[1]);
+  }
+
+  var result = GetQuandlV3Dataset("FRED", "DFF.csv", "VRd9uXcNFP3HC_FGQByy", "start_date=2015-05-12", "end_date=2017-05-11");
+  if (result[0]) {
+    CSFile.WriteAllText(".\\DFF.csv", result[1]);
+  }
+}
